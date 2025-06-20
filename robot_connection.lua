@@ -13,8 +13,11 @@ local running = true
 
 local function receiveMessages()
     while running do
-        local _, sender, receivedPort, _, message = event.pull("modem_message")
-        if receivedPort == port then
+        local _, sender, receivedPort, _, message = event.pull(0.5, "modem_message")
+        if not running then
+            break
+        end
+        if sender and receivedPort == port then
             print("Сообщение от робота: " .. message)
         end
     end
