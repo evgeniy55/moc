@@ -5,12 +5,6 @@ local thread = require("thread")
 
 local port = 12345
 modem.open(port)
-print("Ожидание подключения к роботу...")
-
-local robotAddress = "robot_address_here" -- Замените на адрес вашего робота
-
-local running = true
-
 print("Ожидание сообщений на порту " .. port .. "...")
 
 local running = true
@@ -20,9 +14,11 @@ local function receiveMessages()
         local e = {event.pull(0.5, "modem_message")}
         if not running then break end
         if #e > 0 then
-            local msg = e[6]
+            local msg = e[5] or e[6]
             if msg then
-                print("Сообщение от " .. tostring(e[2]) .. ": " .. tostring(msg))
+                local senderShort = tostring(e[2]):sub(1, 4)
+                io.write("\nСообщение от " .. senderShort .. ": " .. tostring(msg) .. "\n> ")
+                io.flush()
             end
         end
     end
@@ -31,17 +27,17 @@ end
 local receiveThread = thread.create(receiveMessages)
 
 while true do
-    io.write("Введите сообщение для робота (или 'выход' для завершения): ")
+    io.write("> ")
+    io.flush()
     local userInput = io.read()
     if userInput == "выход" then
         running = false
         break
     end
-    modem.send(robotAddress, port, userInput)
+    modem.broadcast(port, userInput)
     print("Сообщение отправлено роботу: " .. userInput)
 end
 
--- Ждем завершения потока получения сообщений
 receiveThread:join()
 
-print("Завершение работы программы.")
+print("Программа завершена.")
