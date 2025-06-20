@@ -3,11 +3,14 @@ local modem = component.modem
 local event = require("event")
 local thread = require("thread")
 
-local port = 12345
+local port = 1
 modem.open(port)
 print("Ожидание сообщений на порту " .. port .. "...")
 
 local running = true
+
+-- Здесь укажите адрес робота (число или строка)
+local robotAddress = "address"  -- замените на реальный адрес робота
 
 local function receiveMessages()
     while running do
@@ -34,7 +37,7 @@ while true do
         running = false
         break
     end
-    modem.broadcast(port, userInput)
+    modem.send(robotAddress, port, userInput)
     print("Сообщение отправлено роботу: " .. userInput)
 end
 
