@@ -1,6 +1,7 @@
-local modem = require("component").modem
-local computer = require("computer")
+local component = require("component")
+local modem = component.modem
 local event = require("event")
+local thread = require("thread")
 
 local port = 12345
 modem.open(port)
@@ -8,35 +9,31 @@ print("Ожидание подключения к роботу...")
 
 local robotAddress = "robot_address_here" -- Замените на адрес вашего робота
 
+local running = true
+
 local function receiveMessages()
-    while true do
-        local _, sender, port, _, message = event.pull("modem_message") -- Ждём сообщения
-        if port == port then
+    while running do
+        local _, sender, receivedPort, _, message = event.pull("modem_message")
+        if receivedPort == port then
             print("Сообщение от робота: " .. message)
         end
     end
 end
 
-local function sendMessage(message)
-    modem.send(robotAddress, port, message)
-    print("Сообщение отправлено роботу: " .. message)
-end
+local receiveThread = thread.create(receiveMessages)
 
--- Запускаем функцию получения сообщений в отдельном потоке
-local receiveThread = computer.addThread(receiveMessages)
-
--- Основной цикл для ввода сообщений
 while true do
     io.write("Введите сообщение для робота (или 'выход' для завершения): ")
     local userInput = io.read()
     if userInput == "выход" then
+        running = false
         break
     end
-    sendMessage(userInput)
+    modem.send(robotAddress, port, userInput)
+    print("Сообщение отправлено роботу: " .. userInput)
 end
 
--- Завершение работы
-if receiveThread then
-    computer.cancel(receiveThread) -- Останавливаем поток получения сообщений
-end
+-- Ждем завершения потока получения сообщений
+receiveThread:join()
+
 print("Завершение работы программы.")
