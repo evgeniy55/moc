@@ -9,15 +9,21 @@ print("Ожидание сообщений на порту " .. port .. "...")
 
 local running = true
 
--- Здесь укажите адрес робота (число или строка)
-local robotAddress = "address"  -- замените на реальный адрес робота
+-- Запрос адреса робота у пользователя
+io.write("Введите адрес робота: ")
+io.flush()
+local robotAddress = io.read()
+if not robotAddress or robotAddress == "" then
+    print("Адрес робота не введён. Завершение программы.")
+    return
+end
 
 local function receiveMessages()
     while running do
         local e = {event.pull(0.5, "modem_message")}
         if not running then break end
         if #e > 0 then
-            local msg = e[5] or e[6]
+            local msg = e[6]  -- сообщение в 6-м параметре
             if msg then
                 local senderShort = tostring(e[2]):sub(1, 4)
                 io.write("\nСообщение от " .. senderShort .. ": " .. tostring(msg) .. "\n> ")
