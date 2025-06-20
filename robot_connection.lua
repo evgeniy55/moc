@@ -11,14 +11,19 @@ local robotAddress = "robot_address_here" -- Замените на адрес в
 
 local running = true
 
+print("Ожидание сообщений на порту " .. port .. "...")
+
+local running = true
+
 local function receiveMessages()
     while running do
-        local _, sender, receivedPort, _, message = event.pull(0.5, "modem_message")
-        if not running then
-            break
-        end
-        if sender and receivedPort == port then
-            print("Сообщение от робота: " .. message)
+        local e = {event.pull(0.5, "modem_message")}
+        if not running then break end
+        if #e > 0 then
+            local msg = e[6]
+            if msg then
+                print("Сообщение от " .. tostring(e[2]) .. ": " .. tostring(msg))
+            end
         end
     end
 end
